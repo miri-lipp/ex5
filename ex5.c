@@ -23,6 +23,7 @@ typedef struct Playlist {
 } Playlist;
 
 //some recommendations for functions, you may implement however you want
+void CleanBuffer();
 void printPlaylistsMenu();
 void printSongsMenu();
 void DisplayPlaylists(int currentAmount, const Playlist *playlist);
@@ -30,18 +31,13 @@ void AddPlaylist(int *currentAmount, Playlist **playlist);
 char *ReadLine();
 void PrintPlaylist(int index, Playlist **playlist);
 void AddSong(Playlist **playlist, int index, int *currentSong);
+void DisplaySongs(const int *currentSong, Playlist **playlist, int index);
+void PlaySong(int song_key, Playlist **playlist, int index);
 
 void deleteSong() {
 
     printf("Song deleted successfully.\n");
 }
-
-
-
-void playSong() {
-    
-}
-
 
 
 void freeSong() {
@@ -107,6 +103,11 @@ void printSongsMenu() {
     6. Back\n");
 }
 
+void CleanBuffer() {
+    scanf("%*[^\n]");
+    scanf("%*c");
+}
+
 void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
@@ -142,7 +143,7 @@ void AddPlaylist(int *currentAmount, Playlist **playlist) {
     printf("Enter playlist's name: \n");
     //do i need to do malloc on new name every time?
     //i need to do new function that reads line
-    scanf("%*c"); //never forget alway remember
+    CleanBuffer(); //never forget alway remember
     (*playlist)[*currentAmount - 1].name = ReadLine();
     ////am i doing this right chat? no i do not. BLYAT. after some considerations i think i do. nope. Finally i think yes
 }
@@ -158,7 +159,7 @@ char *ReadLine() { //function to read new line  every time updaing it through re
         scanf("%c", &ch);
         buffer[length] = ch;
         if (length == sizeof(buffer)) { //if initial length equals to buffer size then do one more realloc and till the end of string
-            buffer = realloc(buffer, length * sizeof(char));
+            buffer = realloc(buffer, length * sizeof(buffer));
             if (buffer == NULL) {
                 printf("Memory allocation failed.\n");
                 exit(1);
@@ -180,8 +181,20 @@ void PrintPlaylist(int index, Playlist **playlist) {
         printSongsMenu();
         scanf("%d", &key);
         switch (key) {
-            case '1': {
-                break;
+            case 1: {
+                int song_key = 0;
+                if (currentSong == 0) {
+                    printf("choose a song to play, or 0 to quit:\n");
+                    scanf("%d", &song_key);
+                    free(playlist[index]->songs);
+                    PrintPlaylist(index, playlist); //she's small but she's strong
+                }
+                DisplaySongs(&currentSong, playlist, index);
+                printf("choose a song to play, or 0 to quit:\n");
+                scanf("%d", &song_key);
+                if (song_key == 0)
+                    break;
+                PlaySong(song_key - 1, playlist, index);
             }
             case 2: {
                 AddSong(playlist, index, &currentSong);
@@ -211,23 +224,41 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
     printf("Enter song's details \n");
     *currentSong = *currentSong + 1;
     printf("Title:\n");
-    scanf("%*c");//never forgetting
-    playlist[index]->songs = realloc(playlist[index]->songs, *currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
-    if (playlist[index]->songs == NULL) {
+    CleanBuffer();//never forgetting
+    playlist[index]->songs = (Song**)realloc(playlist[index]->songs, *currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
+    playlist[index]->songs[*currentSong - 1] = (Song*)malloc(sizeof(Song)); //making memory for new song?
+    if (playlist[index]->songs[*currentSong - 1] == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
     }
     playlist[index]->songs[*currentSong - 1]->title = ReadLine();
     printf("Artist:\n");
-    scanf("%*c");
+    CleanBuffer();
     playlist[index]->songs[*currentSong - 1]->artist = ReadLine();
     printf("Year of release:\n");
-    scanf("%d", playlist[index]->songs[*currentSong - 1]->year);
+    CleanBuffer();
+    scanf("%d", &playlist[index]->songs[*currentSong - 1]->year);
     printf("Lyrics:\n");
-    scanf("%*c");
+    CleanBuffer();
     playlist[index]->songs[*currentSong - 1]->lyrics = ReadLine();
+    playlist[index]->songs[*currentSong - 1]->streams = 0;
     //DO I NEED TO DO POINTER TO OTHER STRUCT AND THE DO OTHER STRUCR AS ARRAY? WHYYYYYYY
     //i have a pointer within this struct to another struct that means i need to do from this pointer array
     //and then to point within playlist array on songs array in song struct
     //i need to do array of songs pointers in this struct that points to song struct?
+}
+
+void DisplaySongs(const int *currentSong, Playlist **playlist, int index) {
+    for (int i = 0, j = 0; i < *currentSong; i++, j++) {
+        printf("%d. Title: %s\n", j+1, playlist[index]->songs[i]->title);
+        printf("   Artist: %s\n", playlist[index]->songs[i]->artist);
+        printf("   Released: %d\n", playlist[index]->songs[i]->year);
+        printf("   Streams: %d\n", playlist[index]->songs[i]->streams);
+    }
+}
+
+void PlaySong(int song_key, Playlist **playlist, int index) {
+    printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
+    printf("$ %s $\n", playlist[index]->songs[song_key]->lyrics);
+    playlist[index]->songs[song_key]->streams++;
 }
