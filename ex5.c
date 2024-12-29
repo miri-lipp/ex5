@@ -24,10 +24,12 @@ typedef struct Playlist {
 
 //some recommendations for functions, you may implement however you want
 void printPlaylistsMenu();
+void printSongsMenu();
 void DisplayPlaylists(int currentAmount, const Playlist *playlist);
 void AddPlaylist(int *currentAmount, Playlist **playlist);
 char *ReadLine();
-void PrintPlaylist(int index);
+void PrintPlaylist(int index, Playlist **playlist);
+void AddSong(Playlist **playlist, int index, int *currentSong);
 
 void deleteSong() {
 
@@ -96,6 +98,15 @@ void printPlaylistsMenu() {
     printf("\t1. Watch playlists\n\t2. Add playlist\n\t3. Remove playlist\n\t4. exit\n");
 }
 
+void printSongsMenu() {
+    printf("\t1. Show Playlist\n\t\
+    2. Add Song\n\t\
+    3. Delete Song\n\t\
+    4. Sort\n\t\
+    5. Play\n\t\
+    6. Back\n");
+}
+
 void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
@@ -112,6 +123,7 @@ void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to i
     scanf("%d", &key);
     if (key == currentAmount + 1)
         return;
+    PrintPlaylist(key - 1, &playlist);
     //else new function about playlist that i need info about func(index) with switch inside
 }
 
@@ -156,4 +168,66 @@ char *ReadLine() { //function to read new line  every time updaing it through re
     }
     buffer[length] = '\0'; //end of line
     return buffer;
+}
+
+void PrintPlaylist(int index, Playlist **playlist) {
+    //function with switch insides of playlist
+    int currentSong = 0;
+    int key = 0;
+    printf("playlist %s\n", playlist[index]->name);
+    playlist[index]->songs = malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
+    do {
+        printSongsMenu();
+        scanf("%d", &key);
+        switch (key) {
+            case '1': {
+                break;
+            }
+            case 2: {
+                AddSong(playlist, index, &currentSong);
+                break;
+            }
+            case '3': {
+                break;
+            }
+            case '4': {
+                break;
+            }
+            case '5': {
+                break;
+            }
+            case '6': {
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+    }while (key != 6);
+}
+
+void AddSong(Playlist **playlist, int index, int *currentSong) {
+    printf("Enter song's details \n");
+    *currentSong = *currentSong + 1;
+    printf("Title:\n");
+    scanf("%*c");//never forgetting
+    playlist[index]->songs = realloc(playlist[index]->songs, *currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
+    if (playlist[index]->songs == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    playlist[index]->songs[*currentSong - 1]->title = ReadLine();
+    printf("Artist:\n");
+    scanf("%*c");
+    playlist[index]->songs[*currentSong - 1]->artist = ReadLine();
+    printf("Year of release:\n");
+    scanf("%d", playlist[index]->songs[*currentSong - 1]->year);
+    printf("Lyrics:\n");
+    scanf("%*c");
+    playlist[index]->songs[*currentSong - 1]->lyrics = ReadLine();
+    //DO I NEED TO DO POINTER TO OTHER STRUCT AND THE DO OTHER STRUCR AS ARRAY? WHYYYYYYY
+    //i have a pointer within this struct to another struct that means i need to do from this pointer array
+    //and then to point within playlist array on songs array in song struct
+    //i need to do array of songs pointers in this struct that points to song struct?
 }
