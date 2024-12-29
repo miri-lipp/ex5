@@ -149,23 +149,24 @@ void AddPlaylist(int *currentAmount, Playlist **playlist) {
 }
 
 char *ReadLine() { //function to read new line  every time updaing it through realloc
-    char *buffer = malloc(sizeof(char)); //new string
-    int length = 0;
-    char ch;
+    char *buffer = malloc(1); //new string
     if (buffer == NULL) {
         printf("Memory allocation failed.\n");
+        exit(1);
     }
+    int length = 0;
+    char ch;
     while (ch != '\n') { //i WILL do it with recursion i swear
         scanf("%c", &ch);
-        buffer[length] = ch;
-        if (length == sizeof(buffer)) { //if initial length equals to buffer size then do one more realloc and till the end of string
-            buffer = realloc(buffer, length * sizeof(buffer));
-            if (buffer == NULL) {
-                printf("Memory allocation failed.\n");
-                exit(1);
-            }
-        }
+        buffer[length] = ch;//if initial length equals to buffer size then do one more realloc and till the end of string
         length++;
+        char *temp  = realloc(buffer, length + 1);
+        if (temp == NULL) {
+            printf("Memory allocation failed.\n");
+            free(buffer);
+            exit(1);
+        }
+        buffer = temp;
     }
     buffer[length] = '\0'; //end of line
     return buffer;
@@ -182,7 +183,7 @@ void PrintPlaylist(int index, Playlist **playlist) {
         scanf("%d", &key);
         switch (key) {
             case 1: {
-                int song_key = 0;
+                int song_key = -1;
                 if (currentSong == 0) {
                     printf("choose a song to play, or 0 to quit:\n");
                     scanf("%d", &song_key);
@@ -190,11 +191,14 @@ void PrintPlaylist(int index, Playlist **playlist) {
                     PrintPlaylist(index, playlist); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
-                printf("choose a song to play, or 0 to quit:\n");
-                scanf("%d", &song_key);
-                if (song_key == 0)
-                    break;
-                PlaySong(song_key - 1, playlist, index);
+                while (1){
+                    printf("choose a song to play, or 0 to quit:\n");
+                    scanf("%d", &song_key);
+                    if (song_key == 0 || song_key > currentSong)
+                        break;
+                    PlaySong(song_key - 1, playlist, index);
+                }
+                break;
             }
             case 2: {
                 AddSong(playlist, index, &currentSong);
@@ -203,10 +207,14 @@ void PrintPlaylist(int index, Playlist **playlist) {
             case '3': {
                 break;
             }
-            case '4': {
+            case 4: {
+
                 break;
             }
-            case '5': {
+            case 5: {
+                for (int i = 0; i < currentSong; i++) {
+                    PlaySong(i, playlist, index);
+                }
                 break;
             }
             case '6': {
@@ -233,13 +241,12 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
     }
     playlist[index]->songs[*currentSong - 1]->title = ReadLine();
     printf("Artist:\n");
-    CleanBuffer();
+    scanf("%*c");
     playlist[index]->songs[*currentSong - 1]->artist = ReadLine();
     printf("Year of release:\n");
-    CleanBuffer();
     scanf("%d", &playlist[index]->songs[*currentSong - 1]->year);
     printf("Lyrics:\n");
-    CleanBuffer();
+    scanf("%*c");
     playlist[index]->songs[*currentSong - 1]->lyrics = ReadLine();
     playlist[index]->songs[*currentSong - 1]->streams = 0;
     //DO I NEED TO DO POINTER TO OTHER STRUCT AND THE DO OTHER STRUCR AS ARRAY? WHYYYYYYY
