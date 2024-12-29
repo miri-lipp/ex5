@@ -175,7 +175,7 @@ void PrintPlaylist(int index, Playlist **playlist) {
     int currentSong = 0;
     int key = 0;
     printf("playlist %s\n", playlist[index]->name);
-    playlist[index]->songs = malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
+    playlist[index]->songs = (Song**)malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
     do {
         printSongsMenu();
         scanf("%d", &key);
