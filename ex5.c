@@ -193,7 +193,7 @@ char *ReadLine() { //function to read new line  every time updaing it through re
         }
         buffer = temp;
     }
-    buffer[length - 1] = '\0'; //end of line
+    buffer[length] = '\0'; //end of line
     return buffer;
 }
 
@@ -202,7 +202,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
     int currentSong = 0;
     int key = 0;
     //playlist[index]->songsNum = 0;
-    printf("playlist %s\n", playlist[index]->name);
+    printf("playlist %s:\n", playlist[index]->name);
     playlist[index]->songs = (Song**)malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
     do {
         printSongsMenu();
@@ -320,8 +320,7 @@ void DisplaySongs(const int *currentSong, Playlist **playlist, int index) {
 
 void PlaySong(int song_key, Playlist **playlist, int index) {
     printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
-    CleanBuffer();//never.forget.to.clean.input.buffer.
-    printf("$ %s$\n", playlist[index]->songs[song_key]->lyrics);
+    printf("$ %s $\n", playlist[index]->songs[song_key]->lyrics);
     playlist[index]->songs[song_key]->streams++;
 }
 
