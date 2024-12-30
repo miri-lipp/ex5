@@ -193,7 +193,7 @@ char *ReadLine() { //function to read new line  every time updaing it through re
         }
         buffer = temp;
     }
-    buffer[length] = '\0'; //end of line
+    buffer[length - 1] = '\0'; //end of line
     return buffer;
 }
 
