@@ -422,6 +422,9 @@ void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong
 }
 
 void freeSong(int index, Playlist **playlist, int song_index) {
+    free(playlist[index]->songs[song_index]->title);
+    free(playlist[index]->songs[song_index]->artist);
+    free(playlist[index]->songs[song_index]->lyrics);
     free(playlist[index]->songs[song_index]);
 }
 
@@ -437,6 +440,7 @@ void freePlaylist(int index, Playlist **playlist) { //add swap function to swap 
         for (int i = 0; i < playlist[index]->songsNum; i++) {//add current - 1
             free(playlist[index]->songs[i]);
         }
+        free(playlist[index]->name);
         free(playlist[index]->songs);
     }
 }
