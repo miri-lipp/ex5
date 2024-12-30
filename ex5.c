@@ -27,18 +27,18 @@ void CleanBuffer();
 void printPlaylistsMenu();
 void printSongsMenu();
 void printSortMenu();
-void DisplayPlaylists(int currentAmount, const Playlist *playlist);
+void DisplayPlaylists(int currentAmount, const Playlist *playlist, int key_menu);
 void AddPlaylist(int *currentAmount, Playlist **playlist);
 char *ReadLine();
-void PrintPlaylist(int index, Playlist **playlist, int *currentAmount);
+void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_menu);
 void AddSong(Playlist **playlist, int index, int *currentSong);
 void DisplaySongs(const int *currentSong, Playlist **playlist, int index);
 void PlaySong(int song_key, Playlist **playlist, int index);
 void Swap(Song *x, Song *y);
 void SortAlphabetically(Playlist **playlist, int index, int *currentSong);
 void SortYears(Playlist **playlist, int index, int *currentSong);
-void SortStreamsAssending(Playlist **playlist, int index, int *currentSong);
-void SortStreamsDessending(Playlist **playlist, int index, int *currentSong);
+void SortStreamsAscending(Playlist **playlist, int index, int *currentSong);
+void SortStreamsDescending(Playlist **playlist, int index, int *currentSong);
 void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong);
 void freeSong(int index, Playlist **playlist, int song_index);
 void freePlaylist(int index, Playlist **playlist);
@@ -54,7 +54,7 @@ int main() {
         scanf("%d", &key);
         switch (key) {
             case WATCH: {
-                DisplayPlaylists(currentAmount, playlist);
+                DisplayPlaylists(currentAmount, playlist, key);
                 break;
             }
             case ADD: {
@@ -62,10 +62,7 @@ int main() {
                 break;
             }
             case REMOVE: {
-                int key_playlist = 0;
-                scanf("%d", &key_playlist);
-                DisplayPlaylists(currentAmount, playlist); //need to update diaplay playlist for it not to go then to print playlist
-                freePlaylist(key_playlist, &playlist);
+                DisplayPlaylists(currentAmount, playlist, key); //need to update display playlist for it not to go then to print playlist
                 break;
             }
             case EXIT: { //add free all of playlist function and i'm golden
@@ -106,7 +103,7 @@ void CleanBuffer() {
     scanf("%*c");
 }
 
-void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to input array of playlists
+void DisplayPlaylists(int currentAmount, const Playlist *playlist, int key_menu) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
     if (currentAmount == 0) {
@@ -122,7 +119,10 @@ void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to i
     scanf("%d", &key);
     if (key == currentAmount + 1)
         return;
-    PrintPlaylist(key - 1, &playlist, &currentAmount);
+    if (key_menu == WATCH)
+        PrintPlaylist(key - 1, &playlist, &currentAmount, key_menu);
+    else if (key_menu == REMOVE)
+        freePlaylist(key, &playlist);
     //else new function about playlist that i need info about func(index) with switch inside
 }
 
@@ -170,7 +170,7 @@ char *ReadLine() { //function to read new line  every time updaing it through re
     return buffer;
 }
 
-void PrintPlaylist(int index, Playlist **playlist, int *currentAmount) {
+void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_menu) {
     //function with switch insides of playlist
     int currentSong = 0;
     int key = 0;
@@ -187,7 +187,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount) {
                     printf("choose a song to play, or 0 to quit:\n");
                     scanf("%d", &song_key);
                     free(playlist[index]->songs);
-                    PrintPlaylist(index, playlist, currentAmount); //she's small but she's strong
+                    PrintPlaylist(index, playlist, currentAmount, key_menu); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
                 while (1){
@@ -209,7 +209,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount) {
                     printf("choose a song to play, or 0 to quit:\n");
                     scanf("%d", &song_key);
                     free(playlist[index]->songs);
-                    PrintPlaylist(index, playlist, currentAmount); //she's small but she's strong
+                    PrintPlaylist(index, playlist, currentAmount, key_menu); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
                 printf("choose a song to delete, or 0 to quit:\n");
@@ -231,11 +231,11 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount) {
                 break;
             }
             case 6: {
-                DisplayPlaylists(*currentAmount, *playlist);
+                DisplayPlaylists(*currentAmount, *playlist, key_menu);
                 break;
             }
             default: {
-                DisplayPlaylists(*currentAmount, *playlist);
+                DisplayPlaylists(*currentAmount, *playlist, key_menu);
                 break;
             }
         }
@@ -291,11 +291,11 @@ void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong
             break;
         }
         case 2: {
-            SortStreamsAssending(playlist, index, currentSong);
+            SortStreamsAscending(playlist, index, currentSong);
             break;
         }
         case 3: {
-            SortStreamsDessending(playlist, index, currentSong);
+            SortStreamsDescending(playlist, index, currentSong);
             break;
         }
         case 4: {
@@ -342,7 +342,7 @@ void SortYears(Playlist **playlist, int index, int *currentSong) {
     }
 }
 
-void SortStreamsAssending(Playlist **playlist, int index, int *currentSong) {
+void SortStreamsAscending(Playlist **playlist, int index, int *currentSong) {
     if (*currentSong == 0) {
         return;
     }
