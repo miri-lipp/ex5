@@ -101,7 +101,7 @@ void printSongsMenu() {
         3. Delete Song\n\
         4. Sort\n\
         5. Play\n\
-        6. Back\n");
+        6. exit\n");
 }
 
 void printSortMenu() {
@@ -193,7 +193,7 @@ char *ReadLine() { //function to read new line  every time updaing it through re
         }
         buffer = temp;
     }
-    buffer[length] = '\0'; //end of line
+    buffer[length - 1] = '\0'; //end of line
     return buffer;
 }
 
@@ -202,7 +202,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
     int currentSong = 0;
     int key = 0;
     //playlist[index]->songsNum = 0;
-    printf("playlist %s", playlist[index]->name);
+    printf("playlist %s\n", playlist[index]->name);
     playlist[index]->songs = (Song**)malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
     do {
         printSongsMenu();
