@@ -26,36 +26,23 @@ typedef struct Playlist {
 void CleanBuffer();
 void printPlaylistsMenu();
 void printSongsMenu();
+void printSortMenu();
 void DisplayPlaylists(int currentAmount, const Playlist *playlist);
 void AddPlaylist(int *currentAmount, Playlist **playlist);
 char *ReadLine();
-void PrintPlaylist(int index, Playlist **playlist);
+void PrintPlaylist(int index, Playlist **playlist, int *currentAmount);
 void AddSong(Playlist **playlist, int index, int *currentSong);
 void DisplaySongs(const int *currentSong, Playlist **playlist, int index);
 void PlaySong(int song_key, Playlist **playlist, int index);
-
-void deleteSong() {
-
-    printf("Song deleted successfully.\n");
-}
-
-
-void freeSong() {
-
-}
-
-void freePlaylist() {
-    
-}
-
-
-
-
-void sortPlaylist() {
-    
-    printf("sorted\n");
-}
-
+void Swap(Song *x, Song *y);
+void SortAlphabetically(Playlist **playlist, int index, int *currentSong);
+void SortYears(Playlist **playlist, int index, int *currentSong);
+void SortStreamsAssending(Playlist **playlist, int index, int *currentSong);
+void SortStreamsDessending(Playlist **playlist, int index, int *currentSong);
+void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong);
+void freeSong(int index, Playlist **playlist, int song_index);
+void freePlaylist(int index, Playlist **playlist);
+void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong);
 
 
 int main() {
@@ -75,10 +62,13 @@ int main() {
                 break;
             }
             case REMOVE: {
-                printf("%d current amount\n", currentAmount);
+                int key_playlist = 0;
+                scanf("%d", &key_playlist);
+                DisplayPlaylists(currentAmount, playlist); //need to update diaplay playlist for it not to go then to print playlist
+                freePlaylist(key_playlist, &playlist);
                 break;
             }
-            case EXIT: {
+            case EXIT: { //add free all of playlist function and i'm golden
                 break;
             }
             default: {
@@ -103,6 +93,14 @@ void printSongsMenu() {
     6. Back\n");
 }
 
+void printSortMenu() {
+    printf("choose:\n\
+            1. sort by year\n\
+            2. sort by streams - ascending order\n\
+            3. sort by streams - descending order\n\
+            4. sort alphabetically\n");
+}
+
 void CleanBuffer() {
     scanf("%*[^\n]");
     scanf("%*c");
@@ -124,7 +122,7 @@ void DisplayPlaylists(int currentAmount, const Playlist *playlist) { //need to i
     scanf("%d", &key);
     if (key == currentAmount + 1)
         return;
-    PrintPlaylist(key - 1, &playlist);
+    PrintPlaylist(key - 1, &playlist, &currentAmount);
     //else new function about playlist that i need info about func(index) with switch inside
 }
 
@@ -172,10 +170,11 @@ char *ReadLine() { //function to read new line  every time updaing it through re
     return buffer;
 }
 
-void PrintPlaylist(int index, Playlist **playlist) {
+void PrintPlaylist(int index, Playlist **playlist, int *currentAmount) {
     //function with switch insides of playlist
     int currentSong = 0;
     int key = 0;
+    playlist[index]->songsNum = 0;
     printf("playlist %s\n", playlist[index]->name);
     playlist[index]->songs = (Song**)malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
     do {
@@ -188,7 +187,7 @@ void PrintPlaylist(int index, Playlist **playlist) {
                     printf("choose a song to play, or 0 to quit:\n");
                     scanf("%d", &song_key);
                     free(playlist[index]->songs);
-                    PrintPlaylist(index, playlist); //she's small but she's strong
+                    PrintPlaylist(index, playlist, currentAmount); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
                 while (1){
@@ -204,11 +203,25 @@ void PrintPlaylist(int index, Playlist **playlist) {
                 AddSong(playlist, index, &currentSong);
                 break;
             }
-            case '3': {
+            case 3: {
+                int song_key = -1;
+                if (currentSong == 0) {
+                    printf("choose a song to play, or 0 to quit:\n");
+                    scanf("%d", &song_key);
+                    free(playlist[index]->songs);
+                    PrintPlaylist(index, playlist, currentAmount); //she's small but she's strong
+                }
+                DisplaySongs(&currentSong, playlist, index);
+                printf("choose a song to delete, or 0 to quit:\n");
+                scanf("%d", &song_key);
+                deleteSong(index, song_key - 1, playlist, &currentSong);
                 break;
             }
             case 4: {
-
+                int key_sort = 0;
+                printSortMenu();
+                scanf("%d", &key_sort);
+                sortPlaylist(key_sort, playlist, index, &currentSong);
                 break;
             }
             case 5: {
@@ -217,10 +230,12 @@ void PrintPlaylist(int index, Playlist **playlist) {
                 }
                 break;
             }
-            case '6': {
+            case 6: {
+                DisplayPlaylists(*currentAmount, *playlist);
                 break;
             }
             default: {
+                DisplayPlaylists(*currentAmount, *playlist);
                 break;
             }
         }
@@ -241,14 +256,13 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
     }
     playlist[index]->songs[*currentSong - 1]->title = ReadLine();
     printf("Artist:\n");
-    scanf("%*c");
     playlist[index]->songs[*currentSong - 1]->artist = ReadLine();
     printf("Year of release:\n");
     scanf("%d", &playlist[index]->songs[*currentSong - 1]->year);
     printf("Lyrics:\n");
-    scanf("%*c");
     playlist[index]->songs[*currentSong - 1]->lyrics = ReadLine();
     playlist[index]->songs[*currentSong - 1]->streams = 0;
+    playlist[index]->songsNum++;
     //DO I NEED TO DO POINTER TO OTHER STRUCT AND THE DO OTHER STRUCR AS ARRAY? WHYYYYYYY
     //i have a pointer within this struct to another struct that means i need to do from this pointer array
     //and then to point within playlist array on songs array in song struct
@@ -268,4 +282,107 @@ void PlaySong(int song_key, Playlist **playlist, int index) {
     printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
     printf("$ %s $\n", playlist[index]->songs[song_key]->lyrics);
     playlist[index]->songs[song_key]->streams++;
+}
+
+void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong) {
+    switch (key_sort) {
+        case 1: {
+            SortYears(playlist, index, currentSong);
+            break;
+        }
+        case 2: {
+            SortStreamsAssending(playlist, index, currentSong);
+            break;
+        }
+        case 3: {
+            SortStreamsDessending(playlist, index, currentSong);
+            break;
+        }
+        case 4: {
+            SortAlphabetically(playlist, index, currentSong);
+            break;
+        }
+        default: {
+            SortAlphabetically(playlist, index, currentSong);
+            break;
+        }
+    }
+    printf("sorted\n");
+}
+
+void Swap(Song *x, Song *y) { //BEST FUNCTION EVAAAAAAAA
+    const Song temp = *y;
+    *y = *x;
+    *x = temp;
+}
+
+void SortAlphabetically(Playlist **playlist, int index, int *currentSong) {
+    if (*currentSong == 0) {
+        return;
+    }
+    //if first letter a then need to check second letter????
+    //first letter of the first word then if the word equal or less then do nothing else swap tm
+    for (int i = 0; i < *currentSong - 1; i++) {//4
+        for (int j = 0; j < *currentSong - i - 1; j++) {
+            if (strcmp(playlist[index]->songs[j]->title, playlist[index]->songs[j + 1]->title) > 0)
+                Swap(playlist[index]->songs[j], playlist[index]->songs[j + 1]);
+        }
+    }
+}
+
+void SortYears(Playlist **playlist, int index, int *currentSong) {
+    if (*currentSong == 0) {
+        return;
+    }
+    for (int i = 0; i < *currentSong - 1; i++) {
+        for (int j = 0; j < *currentSong - i - 1; j++) {
+            if (playlist[index]->songs[j]->year > playlist[index]->songs[j + 1]->year)
+                Swap(playlist[index]->songs[j], playlist[index]->songs[j + 1]);
+        }
+    }
+}
+
+void SortStreamsAssending(Playlist **playlist, int index, int *currentSong) {
+    if (*currentSong == 0) {
+        return;
+    }
+    for (int i = 0; i < *currentSong - 1; i++) {
+        for (int j = 0; j < *currentSong - i - 1; j++) {
+            if (playlist[index]->songs[j]->streams > playlist[index]->songs[j + 1]->streams)
+                Swap(playlist[index]->songs[j], playlist[index]->songs[j + 1]);
+        }
+    }
+}
+
+void SortStreamsDescending(Playlist **playlist, int index, int *currentSong) {
+    if (*currentSong == 0) {
+        return;
+    }
+    for (int i = 0; i < *currentSong - 1; i++) {
+        for (int j = 0; j < *currentSong - i - 1; j++) {
+            if (playlist[index]->songs[j]->streams < playlist[index]->songs[j + 1]->streams)
+                Swap(playlist[index]->songs[j], playlist[index]->songs[j + 1]);
+        }
+    }
+}
+
+void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong) {
+    Swap(playlist[index]->songs[song_index], playlist[index]->songs[*currentSong - 1]);
+    freeSong(index, playlist, *currentSong - 1);
+    *currentSong = *currentSong - 1;
+    playlist[index]->songsNum--;
+    printf("Song deleted successfully.\n");
+
+}
+
+void freeSong(int index, Playlist **playlist, int song_index) {
+    free(playlist[index]->songs[song_index]);
+}
+
+void freePlaylist(int index, Playlist **playlist) { //add swap function to swap places with current playlist that i will always delete last
+    for (int i = 0; i < playlist[index]->songsNum; i++) {//add current - 1
+        free(playlist[index]->songs[i]);
+    }
+    free(playlist[index]->songs);
+    free(playlist[index]);
 }
