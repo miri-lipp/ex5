@@ -27,8 +27,8 @@ void CleanBuffer();
 void printPlaylistsMenu();
 void printSongsMenu();
 void printSortMenu();
-void DisplayPlaylists(int *currentAmount, const Playlist *playlist, int key_menu);
-void AddPlaylist(int *currentAmount, Playlist **playlist);
+void DisplayPlaylists(int *currentAmount, const Playlist **playlist, int key_menu);
+void AddPlaylist(int *currentAmount, Playlist ***playlist);
 char *ReadLine();
 void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_menu);
 void AddSong(Playlist **playlist, int index, int *currentSong);
@@ -45,13 +45,13 @@ void freeSong(int index, Playlist **playlist, int song_index);
 void freePlaylist(int index, Playlist **playlist);
 void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong);
 void DeletePlaylist(int index, Playlist **playlist, int *currentAmount);
-void DeleteEverything(int *currentAmount, Playlist *playlist);
+void DeleteEverything(int *currentAmount, Playlist **playlist);
 
 
 int main() {
     int key = 0;
     int currentAmount = 0;
-    Playlist *playlist = malloc (currentAmount * sizeof(Playlist)); //i made array of struct... i think...
+    Playlist **playlist = malloc (currentAmount * sizeof(Playlist)); //i made array of struct... i think...
     if (playlist == NULL) {
         printf("Memory allocation error");
         exit(1);
@@ -91,20 +91,20 @@ void printPlaylistsMenu() {
 }
 
 void printSongsMenu() {
-    printf("\t1. Show Playlist\n\t\
-    2. Add Song\n\t\
-    3. Delete Song\n\t\
-    4. Sort\n\t\
-    5. Play\n\t\
-    6. Back\n");
+    printf("\t1. Show Playlist\n\
+        2. Add Song\n\
+        3. Delete Song\n\
+        4. Sort\n\
+        5. Play\n\
+        6. Back\n");
 }
 
 void printSortMenu() {
     printf("choose:\n\
-            1. sort by year\n\
-            2. sort by streams - ascending order\n\
-            3. sort by streams - descending order\n\
-            4. sort alphabetically\n");
+        1. sort by year\n\
+        2. sort by streams - ascending order\n\
+        3. sort by streams - descending order\n\
+        4. sort alphabetically\n");
 }
 
 void CleanBuffer() {
@@ -112,7 +112,7 @@ void CleanBuffer() {
     scanf("%*c");
 }
 
-void DisplayPlaylists(int *currentAmount, const Playlist *playlist, int key_menu) { //need to input array of playlists
+void DisplayPlaylists(int *currentAmount, const Playlist **playlist, int key_menu) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
     if (*currentAmount == 0) {
@@ -122,16 +122,16 @@ void DisplayPlaylists(int *currentAmount, const Playlist *playlist, int key_menu
             return;
     }
     for (int i = 0, j = 0; i < *currentAmount; i++, j++) {
-        printf("\t%d. %s\n", j + 1, playlist[i].name);
+        printf("\t%d. %s", j + 1, playlist[i]->name);
     }
     printf("\t%d. Back to main menu\n", *currentAmount + 1);
     scanf("%d", &key);
     if (key == *currentAmount + 1)
         return;
     if (key_menu == WATCH && key != *currentAmount + 1)
-        PrintPlaylist(key - 1, &playlist, currentAmount, key_menu);
+        PrintPlaylist(key - 1, playlist, currentAmount, key_menu);
     else if (key_menu == REMOVE && key != *currentAmount + 1)
-        DeletePlaylist(key - 1, &playlist, currentAmount);
+        DeletePlaylist(key - 1, playlist, currentAmount);
     //else new function about playlist that i need info about func(index) with switch inside
 }
 
@@ -139,20 +139,26 @@ void DisplayPlaylists(int *currentAmount, const Playlist *playlist, int key_menu
     //if struc playlist at least one then move back to main to option 2
     //i'm going to do fucking recursion here i swear to god
 
-void AddPlaylist(int *currentAmount, Playlist **playlist) {
+void AddPlaylist(int *currentAmount, Playlist ***playlist) {
     //allocate initial memory
     //when adding one more playlist here then to do realloc to memory + 1?
     *currentAmount = *currentAmount + 1;
-    *playlist = realloc(*playlist, *currentAmount * sizeof(Playlist)); //can i do that?
+    **playlist = realloc(*playlist, *currentAmount * sizeof(Playlist)); //can i do that?
     if (*playlist == NULL) {
         printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    (*playlist)[*currentAmount- 1] = malloc(sizeof(Playlist));
+    if ((*playlist)[*currentAmount- 1] == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
     }
     printf("Enter playlist's name: \n");
     //do i need to do malloc on new name every time?
     //i need to do new function that reads line
     CleanBuffer(); //never forget alway remember
-    (*playlist)[*currentAmount - 1].name = ReadLine();
-    playlist[*currentAmount - 1]->songsNum = 0;
+    (*playlist)[*currentAmount - 1]->name = ReadLine();
+    (*playlist)[*currentAmount - 1]->songsNum = 0;
     ////am i doing this right chat? no i do not. BLYAT. after some considerations i think i do. nope. Finally i think yes
 }
 
@@ -241,11 +247,11 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
                 break;
             }
             case 6: {
-                DisplayPlaylists(currentAmount, *playlist, key_menu);
+                DisplayPlaylists(currentAmount, playlist, key_menu);
                 break;
             }
             default: {
-                DisplayPlaylists(currentAmount, *playlist, key_menu);
+                DisplayPlaylists(currentAmount, playlist, key_menu);
                 break;
             }
         }
@@ -282,16 +288,17 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
 
 void DisplaySongs(const int *currentSong, Playlist **playlist, int index) {
     for (int i = 0, j = 0; i < *currentSong; i++, j++) {
-        printf("%d. Title: %s\n", j+1, playlist[index]->songs[i]->title);
-        printf("   Artist: %s\n", playlist[index]->songs[i]->artist);
+        printf("%d. Title: %s", j+1, playlist[index]->songs[i]->title);
+        printf("   Artist: %s", playlist[index]->songs[i]->artist);
         printf("   Released: %d\n", playlist[index]->songs[i]->year);
         printf("   Streams: %d\n", playlist[index]->songs[i]->streams);
     }
 }
 
 void PlaySong(int song_key, Playlist **playlist, int index) {
-    printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
-    printf("$ %s $\n", playlist[index]->songs[song_key]->lyrics);
+    printf("Now playing %s:", playlist[index]->songs[song_key]->title);
+    CleanBuffer();
+    printf("$ %s $", playlist[index]->songs[song_key]->lyrics);
     playlist[index]->songs[song_key]->streams++;
 }
 
@@ -412,11 +419,12 @@ void freePlaylist(int index, Playlist **playlist) { //add swap function to swap 
     }
 }
 
-void DeleteEverything(int *currentAmount, Playlist *playlist) {
+void DeleteEverything(int *currentAmount, Playlist **playlist) {
     if (*currentAmount == 0)
         return;
     for (int i = 0; i < *currentAmount; i++) {
-        freePlaylist(i, &playlist);
+        freePlaylist(i, playlist);
     }
+    free(*playlist);
     free(playlist);
 }
