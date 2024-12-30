@@ -117,7 +117,7 @@ void CleanBuffer() {
     scanf("%*c");
 }
 
-void DisplayPlaylists(int *currentAmount, const Playlist **playlist, int key_menu) { //need to input array of playlists
+void DisplayPlaylists(int *currentAmount, Playlist **playlist, int key_menu) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
     if (*currentAmount == 0) {
