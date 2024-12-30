@@ -318,7 +318,7 @@ void DisplaySongs(const int *currentSong, Playlist **playlist, int index) {
     }
 }
 
-void PlaySong(int song_key, Playlist **playlist, int index) {
+void PlaySong(int song_key, Playlist **playlist, int index) {//didn't need to clean buffer here :(
     printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
     printf("$ %s $\n", playlist[index]->songs[song_key]->lyrics);
     playlist[index]->songs[song_key]->streams++;
