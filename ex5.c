@@ -32,7 +32,7 @@ void CleanBuffer();
 void printPlaylistsMenu();
 void printSongsMenu();
 void printSortMenu();
-void DisplayPlaylists(int *currentAmount, const Playlist **playlist, int key_menu);
+void DisplayPlaylists(int *currentAmount, Playlist **playlist, int key_menu);
 void AddPlaylist(int *currentAmount, Playlist ***playlist);
 char *ReadLine();
 void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_menu);
