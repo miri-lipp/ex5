@@ -36,16 +36,16 @@ void DisplaySongs(const int *currentSong, Playlist **playlist, int index);
 void PlaySong(int song_key, Playlist **playlist, int index);
 void Swap(Song *x, Song *y);
 void SwapPlaylist(Playlist *x, Playlist *y);
-void SortAlphabetically(Playlist **playlist, int index, int *currentSong);
-void SortYears(Playlist **playlist, int index, int *currentSong);
-void SortStreamsAscending(Playlist **playlist, int index, int *currentSong);
-void SortStreamsDescending(Playlist **playlist, int index, int *currentSong);
+void SortAlphabetically(Playlist **playlist, int index, const int *currentSong);
+void SortYears(Playlist **playlist, int index, const int *currentSong);
+void SortStreamsAscending(Playlist **playlist, int index, const int *currentSong);
+void SortStreamsDescending(Playlist **playlist, int index, const int *currentSong);
 void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong);
 void freeSong(int index, Playlist **playlist, int song_index);
 void freePlaylist(int index, Playlist **playlist);
 void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong);
 void DeletePlaylist(int index, Playlist **playlist, int *currentAmount);
-void DeleteEverything(int *currentAmount, Playlist **playlist);
+void DeleteEverything(const int *currentAmount, Playlist **playlist);
 
 
 int main() {
@@ -76,7 +76,7 @@ int main() {
                 DeleteEverything(&currentAmount, playlist);
                 break;
             }
-            default: {
+            default: { //idk what to do here you didn't write i think. not sure. need to check
                 printf("Wrong input\n");
                 break;
             }
@@ -122,7 +122,7 @@ void DisplayPlaylists(int *currentAmount, const Playlist **playlist, int key_men
             return;
     }
     for (int i = 0, j = 0; i < *currentAmount; i++, j++) {
-        printf("\t%d. %s", j + 1, playlist[i]->name);
+        printf("\t%d. %s\n", j + 1, playlist[i]->name);
     }
     printf("\t%d. Back to main menu\n", *currentAmount + 1);
     scanf("%d", &key);
@@ -143,7 +143,7 @@ void AddPlaylist(int *currentAmount, Playlist ***playlist) {
     //allocate initial memory
     //when adding one more playlist here then to do realloc to memory + 1?
     *currentAmount = *currentAmount + 1;
-    **playlist = realloc(*playlist, *currentAmount * sizeof(Playlist)); //can i do that?
+    *playlist = realloc(*playlist, *currentAmount * sizeof(Playlist*)); //can i do that?
     if (*playlist == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
@@ -158,6 +158,10 @@ void AddPlaylist(int *currentAmount, Playlist ***playlist) {
     //i need to do new function that reads line
     CleanBuffer(); //never forget alway remember
     (*playlist)[*currentAmount - 1]->name = ReadLine();
+    if ((*playlist)[*currentAmount - 1]->name == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
     (*playlist)[*currentAmount - 1]->songsNum = 0;
     ////am i doing this right chat? no i do not. BLYAT. after some considerations i think i do. nope. Finally i think yes
 }
@@ -170,8 +174,10 @@ char *ReadLine() { //function to read new line  every time updaing it through re
     }
     int length = 0;
     char ch;
-    while (ch != '\n') { //i WILL do it with recursion i swear
+    while (1) { //i WILL do it with recursion i swear
         scanf("%c", &ch);
+        if (ch == '\n') //to not input \n in my string because printf goes brrr if i do
+            break;
         buffer[length] = ch;//if initial length equals to buffer size then do one more realloc and till the end of string
         length++;
         char *temp  = realloc(buffer, length + 1);
@@ -191,7 +197,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
     int currentSong = 0;
     int key = 0;
     //playlist[index]->songsNum = 0;
-    printf("playlist %s\n", playlist[index]->name);
+    printf("playlist %s", playlist[index]->name);
     playlist[index]->songs = (Song**)malloc(currentSong * sizeof(Song*)); //not sure if i need sizeof songs?
     do {
         printSongsMenu();
@@ -271,13 +277,25 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
         exit(1);
     }
     playlist[index]->songs[*currentSong - 1]->title = ReadLine();
+    if (playlist[index]->songs[*currentSong - 1]->title == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
     printf("Artist:\n");
     playlist[index]->songs[*currentSong - 1]->artist = ReadLine();
+    if (playlist[index]->songs[*currentSong - 1]->artist == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
     printf("Year of release:\n");
     scanf("%d", &playlist[index]->songs[*currentSong - 1]->year);\
     CleanBuffer();
     printf("Lyrics:\n");
     playlist[index]->songs[*currentSong - 1]->lyrics = ReadLine();
+    if (playlist[index]->songs[*currentSong - 1]->lyrics == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
     playlist[index]->songs[*currentSong - 1]->streams = 0;
     playlist[index]->songsNum++;
     //DO I NEED TO DO POINTER TO OTHER STRUCT AND THE DO OTHER STRUCR AS ARRAY? WHYYYYYYY
@@ -288,17 +306,17 @@ void AddSong(Playlist **playlist, int index, int *currentSong) {
 
 void DisplaySongs(const int *currentSong, Playlist **playlist, int index) {
     for (int i = 0, j = 0; i < *currentSong; i++, j++) {
-        printf("%d. Title: %s", j+1, playlist[index]->songs[i]->title);
-        printf("   Artist: %s", playlist[index]->songs[i]->artist);
+        printf("%d. Title: %s\n", j+1, playlist[index]->songs[i]->title);
+        printf("   Artist: %s\n", playlist[index]->songs[i]->artist);
         printf("   Released: %d\n", playlist[index]->songs[i]->year);
         printf("   Streams: %d\n", playlist[index]->songs[i]->streams);
     }
 }
 
 void PlaySong(int song_key, Playlist **playlist, int index) {
-    printf("Now playing %s:", playlist[index]->songs[song_key]->title);
-    CleanBuffer();
-    printf("$ %s $", playlist[index]->songs[song_key]->lyrics);
+    printf("Now playing %s:\n", playlist[index]->songs[song_key]->title);
+    CleanBuffer();//never.forget.to.clean.input.buffer.
+    printf("$ %s$\n", playlist[index]->songs[song_key]->lyrics);
     playlist[index]->songs[song_key]->streams++;
 }
 
@@ -334,13 +352,13 @@ void Swap(Song *x, Song *y) { //BEST FUNCTION EVAAAAAAAA
     *x = temp;
 }
 
-void SwapPlaylist(Playlist *x, Playlist *y) {
+void SwapPlaylist(Playlist *x, Playlist *y) {//also best function ever i think there is function like this inb some library but i'm not sure
     const Playlist temp = *y;
     *y = *x;
     *x = temp;
 }
 
-void SortAlphabetically(Playlist **playlist, int index, int *currentSong) {
+void SortAlphabetically(Playlist **playlist, int index, const int *currentSong) { //bubble sorts
     if (*currentSong == 0) {
         return;
     }
@@ -354,7 +372,7 @@ void SortAlphabetically(Playlist **playlist, int index, int *currentSong) {
     }
 }
 
-void SortYears(Playlist **playlist, int index, int *currentSong) {
+void SortYears(Playlist **playlist, int index, const int *currentSong) {
     if (*currentSong == 0) {
         return;
     }
@@ -366,7 +384,7 @@ void SortYears(Playlist **playlist, int index, int *currentSong) {
     }
 }
 
-void SortStreamsAscending(Playlist **playlist, int index, int *currentSong) {
+void SortStreamsAscending(Playlist **playlist, int index, const int *currentSong) {
     if (*currentSong == 0) {
         return;
     }
@@ -378,7 +396,7 @@ void SortStreamsAscending(Playlist **playlist, int index, int *currentSong) {
     }
 }
 
-void SortStreamsDescending(Playlist **playlist, int index, int *currentSong) {
+void SortStreamsDescending(Playlist **playlist, int index, const int *currentSong) {
     if (*currentSong == 0) {
         return;
     }
@@ -419,7 +437,7 @@ void freePlaylist(int index, Playlist **playlist) { //add swap function to swap 
     }
 }
 
-void DeleteEverything(int *currentAmount, Playlist **playlist) {
+void DeleteEverything(const int *currentAmount, Playlist **playlist) {
     if (*currentAmount == 0)
         return;
     for (int i = 0; i < *currentAmount; i++) {
