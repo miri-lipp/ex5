@@ -185,13 +185,12 @@ char *ReadLine() { //function to read new line  every time updaing it through re
             break;
         buffer[length] = ch;//if initial length equals to buffer size then do one more realloc and till the end of string
         length++;
-        char *temp  = realloc(buffer, length + 1);
-        if (temp == NULL) {
+        buffer  = realloc(buffer, length + 1);
+        if (buffer == NULL) {
             printf("Memory allocation failed.\n");
             free(buffer);
             exit(1);
         }
-        buffer = temp;
     }
     buffer[length - 1] = '\0'; //end of line
     return buffer;
@@ -438,11 +437,12 @@ void DeletePlaylist(int index, Playlist **playlist, int *currentAmount) {
 void freePlaylist(int index, Playlist **playlist) { //add swap function to swap places with current playlist that i will always delete last
     if (playlist[index]->songsNum != 0) {
         for (int i = 0; i < playlist[index]->songsNum; i++) {//add current - 1
-            free(playlist[index]->songs[i]);
+            freeSong(index, playlist, i);
         }
         free(playlist[index]->name);
         free(playlist[index]->songs);
     }
+    free(playlist[index]);
 }
 
 void DeleteEverything(const int *currentAmount, Playlist **playlist) {
@@ -451,6 +451,6 @@ void DeleteEverything(const int *currentAmount, Playlist **playlist) {
     for (int i = 0; i < *currentAmount; i++) {
         freePlaylist(i, playlist);
     }
-    free(*playlist);
+    //free(*playlist);
     free(playlist);
 }
