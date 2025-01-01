@@ -218,7 +218,10 @@ char *ReadLine() { //function to read new line  every time updating it through r
         buffer[length] = ch;//if initial length equals to buffer size then do one more reallocate and till the end of string
         length++;
     }
-    buffer[length] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
+    if (buffer[length - 1] == '\n' || buffer[length - 1] == '\r')
+        buffer[length - 1] = '\0';
+    else
+        buffer[length] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
     return buffer;
 }
 
