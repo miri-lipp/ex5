@@ -204,7 +204,7 @@ char *ReadLine() { //function to read new line  every time updating it through r
     char ch;
     while (1) { //i WILL do it with recursion i swear
         scanf("%c", &ch);
-        if (ch == '\n' || ch == '\r') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
+        if (ch == '\n') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
             break;
         if (length >= capacity) { //if length bigger than capacity then reallocate buffer
             capacity *= 2;
