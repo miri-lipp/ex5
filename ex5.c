@@ -270,19 +270,16 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
                     PrintPlaylist(index, playlist, currentAmount, key_menu); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
-                while (1) {
                     printf("choose a song to delete, or 0 to quit:\n");
                     scanf("%d", &song_key);
                     if (song_key == 0)
                         break;
                     if (song_key < 0 || song_key > currentSong) {
                         printf("Invalid option\n");
-                        DisplaySongs(&currentSong, playlist, index);
                     }
                     else {
                         deleteSong(index, song_key - 1, playlist, &currentSong);
                     }
-                }
                 break;
             }
             case SORT_SONG: {
