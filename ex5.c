@@ -1,17 +1,34 @@
 /******************
-Name:
-ID:
+Name: Miriam Lipkovich
+ID:336239652
 Assignment: ex5
 *******************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define WATCH 1
-#define ADD 2
-#define REMOVE 3
-#define EXIT 4
-#define INITIAL_BUFFER_SIZE 128 //for read strings with dynamic memory allocation i think :/
 
+typedef enum PlaylistMenu {
+    WATCH = 1,
+    ADD,
+    REMOVE,
+    EXIT
+} PlaylistMenu;
+
+typedef enum SongMenu {
+    SHOW_SONGS = 1,
+    ADD_SONG,
+    REMOVE_SONG,
+    SORT_SONG,
+    PLAY_ALL,
+    BACK
+}SongMenu;
+
+typedef enum SortMenu {
+    SORT_BY_YEARS = 1,
+    SORT_BY_STREAMS_ASCENDING,
+    SORT_BY_STREAMS_DESCENDING,
+    SORT_BY_NAME,
+}SortMenu;
 
 typedef struct Song {
     char* title;
@@ -81,8 +98,8 @@ int main() {
                 DeleteEverything(&currentAmount, playlist);
                 break;
             }
-            default: { //idk what to do here you didn't write i think. not sure. need to check
-                printf("Wrong input\n");
+            default: {
+                printf("Invalid option\n");
                 break;
             }
         }
@@ -120,11 +137,13 @@ void CleanBuffer() {
 void DisplayPlaylists(int *currentAmount, Playlist **playlist, int key_menu) { //need to input array of playlists
     int key = 0;
     printf("Choose a playlist:\n");
-    if (*currentAmount == 0) {
+    if (*currentAmount == 0) { //if there is no playlists
         printf("\t1. Back to main menu\n");
         scanf("%d", &key);
         if (key == 1)
             return;
+        printf("Invalid option\n");
+        return;
     }
     for (int i = 0, j = 0; i < *currentAmount; i++, j++) {
         printf("\t%d. %s\n", j + 1, playlist[i]->name);
@@ -133,16 +152,19 @@ void DisplayPlaylists(int *currentAmount, Playlist **playlist, int key_menu) { /
     scanf("%d", &key);
     if (key == *currentAmount + 1)
         return;
-    if (key_menu == WATCH && key != *currentAmount + 1)
+    if (key_menu == WATCH && key < *currentAmount + 1 && key > 0) //goes to song menu
         PrintPlaylist(key - 1, playlist, currentAmount, key_menu);
-    else if (key_menu == REMOVE && key != *currentAmount + 1)
+    else if (key_menu == REMOVE && key < *currentAmount + 1 && key > 0) //goes to delete menu
         DeletePlaylist(key - 1, playlist, currentAmount);
+    else {
+        printf("Invalid option\n");
+        DisplayPlaylists(currentAmount, playlist, key_menu);
+    }
     //else new function about playlist that i need info about func(index) with switch inside
 }
 
 //if struc playlist name == NULL then print back to main menu
     //if struc playlist at least one then move back to main to option 2
-    //i'm going to do fucking recursion here i swear to god
 
 void AddPlaylist(int *currentAmount, Playlist ***playlist) {
     //allocate initial memory
@@ -168,11 +190,12 @@ void AddPlaylist(int *currentAmount, Playlist ***playlist) {
         exit(1);
     }
     (*playlist)[*currentAmount - 1]->songsNum = 0;
-    ////am i doing this right chat? no i do not. BLYAT. after some considerations i think i do. nope. Finally i think yes
+    ////am i doing this right chat? no i do not. after some considerations i think i do. nope. Finally i think yes
 }
 
-char *ReadLine() { //function to read new line  every time updaing it through realloc
-    char *buffer = malloc(1); //new string
+char *ReadLine() { //function to read new line  every time updating it through reallocate
+    int capacity = 16; //initial length of buffer
+    char *buffer = malloc(capacity); //new string
     if (buffer == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
@@ -181,18 +204,21 @@ char *ReadLine() { //function to read new line  every time updaing it through re
     char ch;
     while (1) { //i WILL do it with recursion i swear
         scanf("%c", &ch);
-        if (ch == '\n') //to not input \n in my string because printf goes brrr if i do
+        if (ch == '\n' || ch == '\r') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
             break;
-        buffer[length] = ch;//if initial length equals to buffer size then do one more realloc and till the end of string
-        length++;
-        buffer  = realloc(buffer, length + 1);
-        if (buffer == NULL) {
-            printf("Memory allocation failed.\n");
-            free(buffer);
-            exit(1);
+        if (length >= capacity) { //if length bigger than capacity then reallocate buffer
+            capacity *= 2;
+            buffer  = realloc(buffer, capacity);
+            if (buffer == NULL) {
+                printf("Memory allocation failed.\n");
+                free(buffer);
+                exit(1);
+            }
         }
+        buffer[length] = ch;//if initial length equals to buffer size then do one more reallocate and till the end of string
+        length++;
     }
-    buffer[length - 1] = '\0'; //end of line
+    buffer[length] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
     return buffer;
 }
 
@@ -207,7 +233,7 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
         printSongsMenu();
         scanf("%d", &key);
         switch (key) {
-            case 1: {
+            case SHOW_SONGS: {
                 int song_key = -1;
                 if (currentSong == 0) {
                     printf("choose a song to play, or 0 to quit:\n");
@@ -219,17 +245,23 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
                 while (1){
                     printf("choose a song to play, or 0 to quit:\n");
                     scanf("%d", &song_key);
-                    if (song_key == 0 || song_key > currentSong)
+                    if (song_key == 0)
                         break;
-                    PlaySong(song_key - 1, playlist, index);
+                    if (song_key < 0 || song_key > currentSong) {
+                        printf("Invalid option\n");
+                        DisplaySongs(&currentSong, playlist, index);
+                    }
+                    else {
+                        PlaySong(song_key - 1, playlist, index);
+                    }
                 }
                 break;
             }
-            case 2: {
+            case ADD_SONG: {
                 AddSong(playlist, index, &currentSong);
                 break;
             }
-            case 3: {
+            case REMOVE_SONG: {
                 int song_key = -1;
                 if (currentSong == 0) {
                     printf("choose a song to play, or 0 to quit:\n");
@@ -238,28 +270,43 @@ void PrintPlaylist(int index, Playlist **playlist, int *currentAmount, int key_m
                     PrintPlaylist(index, playlist, currentAmount, key_menu); //she's small but she's strong
                 }
                 DisplaySongs(&currentSong, playlist, index);
-                printf("choose a song to delete, or 0 to quit:\n");
-                scanf("%d", &song_key);
-                deleteSong(index, song_key - 1, playlist, &currentSong);
+                while (1) {
+                    printf("choose a song to delete, or 0 to quit:\n");
+                    scanf("%d", &song_key);
+                    if (song_key == 0)
+                        break;
+                    if (song_key < 0 || song_key > currentSong) {
+                        printf("Invalid option\n");
+                        DisplaySongs(&currentSong, playlist, index);
+                    }
+                    else {
+                        deleteSong(index, song_key - 1, playlist, &currentSong);
+                    }
+                }
                 break;
             }
-            case 4: {
+            case SORT_SONG: {
                 int key_sort = 0;
+                if (currentSong == 0) {
+                    printf("Invalid option.\n");
+                    break;
+                }
                 printSortMenu();
                 scanf("%d", &key_sort);
                 sortPlaylist(key_sort, playlist, index, &currentSong);
                 break;
             }
-            case 5: {
+            case PLAY_ALL: {
+                if (currentSong == 0) {
+                    printf("Invalid option\n");
+                    break;
+                }
                 for (int i = 0; i < currentSong; i++) {
                     PlaySong(i, playlist, index);
                 }
                 break;
             }
-            case 6: {
-                DisplayPlaylists(currentAmount, playlist, key_menu);
-                break;
-            }
+            case BACK:
             default: {
                 DisplayPlaylists(currentAmount, playlist, key_menu);
                 break;
@@ -325,22 +372,19 @@ void PlaySong(int song_key, Playlist **playlist, int index) {//didn't need to cl
 
 void sortPlaylist(int key_sort, Playlist **playlist, int index, int *currentSong) {
     switch (key_sort) {
-        case 1: {
+        case SORT_BY_YEARS: {
             SortYears(playlist, index, currentSong);
             break;
         }
-        case 2: {
+        case SORT_BY_STREAMS_ASCENDING: {
             SortStreamsAscending(playlist, index, currentSong);
             break;
         }
-        case 3: {
+        case SORT_BY_STREAMS_DESCENDING: {
             SortStreamsDescending(playlist, index, currentSong);
             break;
         }
-        case 4: {
-            SortAlphabetically(playlist, index, currentSong);
-            break;
-        }
+        case SORT_BY_NAME:
         default: {
             SortAlphabetically(playlist, index, currentSong);
             break;
@@ -367,6 +411,7 @@ void SortAlphabetically(Playlist **playlist, int index, const int *currentSong) 
     }
     //if first letter a then need to check second letter????
     //first letter of the first word then if the word equal or less then do nothing else swap tm
+    //remembered that i can use string library
     for (int i = 0; i < *currentSong - 1; i++) {//4
         for (int j = 0; j < *currentSong - i - 1; j++) {
             if (strcmp(playlist[index]->songs[j]->title, playlist[index]->songs[j + 1]->title) > 0)
@@ -412,7 +457,7 @@ void SortStreamsDescending(Playlist **playlist, int index, const int *currentSon
 }
 
 void deleteSong(int index, int song_index, Playlist **playlist, int *currentSong) {
-    Swap(playlist[index]->songs[song_index], playlist[index]->songs[*currentSong - 1]);
+    Swap(playlist[index]->songs[song_index], playlist[index]->songs[*currentSong - 1]); //swapping songs so that i will always delete the last song
     freeSong(index, playlist, *currentSong - 1);
     *currentSong = *currentSong - 1;
     playlist[index]->songsNum--;
@@ -428,7 +473,7 @@ void freeSong(int index, Playlist **playlist, int song_index) {
 }
 
 void DeletePlaylist(int index, Playlist **playlist, int *currentAmount) {
-    SwapPlaylist(playlist[index], playlist[*currentAmount - 1]);
+    SwapPlaylist(playlist[index], playlist[*currentAmount - 1]); //swaping playlist so that i will always delete the last playlist
     freePlaylist(*currentAmount - 1, playlist);
     *currentAmount = *currentAmount - 1;
     printf("Playlist deleted.\n");
@@ -437,20 +482,20 @@ void DeletePlaylist(int index, Playlist **playlist, int *currentAmount) {
 void freePlaylist(int index, Playlist **playlist) { //add swap function to swap places with current playlist that i will always delete last
     if (playlist[index]->songsNum != 0) {
         for (int i = 0; i < playlist[index]->songsNum; i++) {//add current - 1
-            freeSong(index, playlist, i);
+            freeSong(index, playlist, i); //function to free songs. can i do it with recursion?
         }
-        free(playlist[index]->name);
-        free(playlist[index]->songs);
+        free(playlist[index]->name); //free name of playlist
+        free(playlist[index]->songs); //freeing song pointer(freeing struct Song i think)
     }
-    free(playlist[index]);
+    free(playlist[index]); //freeing place in the array
 }
 
 void DeleteEverything(const int *currentAmount, Playlist **playlist) {
     if (*currentAmount == 0)
         return;
     for (int i = 0; i < *currentAmount; i++) {
-        freePlaylist(i, playlist);
+        freePlaylist(i, playlist); //freeing playlists
     }
     //free(*playlist);
-    free(playlist);
+    free(playlist); //free pointer?
 }
