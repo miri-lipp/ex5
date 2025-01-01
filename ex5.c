@@ -204,7 +204,7 @@ char *ReadLine() { //function to read new line  every time updating it through r
     char ch;
     while (1) { //i WILL do it with recursion i swear
         scanf("%c", &ch);
-        if (ch == '\n' || ch == '\r') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
+        if (ch == '\n') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
             break;
         if (length >= capacity) { //if length bigger than capacity then reallocate buffer
             capacity *= 2;
@@ -218,7 +218,7 @@ char *ReadLine() { //function to read new line  every time updating it through r
         buffer[length] = ch;//if initial length equals to buffer size then do one more reallocate and till the end of string
         length++;
     }
-    buffer[length] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
+    buffer[length - 1] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
     return buffer;
 }
 
