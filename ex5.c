@@ -206,6 +206,8 @@ char *ReadLine() { //function to read new line  every time updating it through r
         scanf("%c", &ch);
         if (ch == '\n') //to not input \n in my string because printf goes brrr if i do and in windows that it won't read return
             break;
+        if (ch == '\r')
+            continue;
         if (length >= capacity) { //if length bigger than capacity then reallocate buffer
             capacity *= 2;
             buffer  = realloc(buffer, capacity);
@@ -218,10 +220,9 @@ char *ReadLine() { //function to read new line  every time updating it through r
         buffer[length] = ch;//if initial length equals to buffer size then do one more reallocate and till the end of string
         length++;
     }
-    if (buffer[length - 1] == '\r')
-        buffer[length] = '\0';
-    else
-        buffer[length - 1] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
+    if (buffer[length - 1] == '\r' || buffer[length - 1] == '\n')
+        length--;
+    buffer[length] = '\0'; //end of line idk why but in linux it works with authomatic check only with length - 1 and in windows: length
     return buffer;
 }
 
